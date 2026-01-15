@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # Banco de dados para student_service
+  student-db:
+    image: postgres:15-alpine
+    container_name: student-db
+    environment:
+      POSTGRES_DB: ${STUDENT_DB_NAME:-student_db}
+      POSTGRES_USER: ${STUDENT_DB_USER:-student_user}
+      POSTGRES_PASSWORD: ${STUDENT_DB_PASSWORD:-student_password}
+    volumes:
+      - student_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STUDENT_DB_USER:-student_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Banco de dados para registration_service
+  registration-db:
+    image: postgres:15-alpine
+    container_name: registration-db
+    environment:
+      POSTGRES_DB: ${REGISTRATION_DB_NAME:-registration_db}
+      POSTGRES_USER: ${REGISTRATION_DB_USER:-registration_user}
+      POSTGRES_PASSWORD: ${REGISTRATION_DB_PASSWORD:-registration_password}
+    volumes:
+      - registration_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${REGISTRATION_DB_USER:-registration_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Student Service
+  student-service:
+    build:
+      context: .
+      dockerfile: ./student_service/Dockerfile
+    container_name: student-service
+    environment:
+      DB_NAME: ${STUDENT_DB_NAME:-student_db}
+      DB_USER: ${STUDENT_DB_USER:-student_user}
+      DB_PASSWORD: ${STUDENT_DB_PASSWORD:-student_password}
+      DB_HOST: student-db
+      DB_PORT: 5432
+    depends_on:
+      student-db:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./student_service:/app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/student/\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Registration Service
+  registration-service:
+    build:
+      context: .
+      dockerfile: ./registration_service/Dockerfile
+    container_name: registration-service
+    environment:
+      DB_NAME: ${REGISTRATION_DB_NAME:-registration_db}
+      DB_USER: ${REGISTRATION_DB_USER:-registration_user}
+      DB_PASSWORD: ${REGISTRATION_DB_PASSWORD:-registration_password}
+      DB_HOST: registration-db
+      DB_PORT: 5432
+      STUDENT_SERVICE_URL: http://student-service:8000/api/student
+    depends_on:
+      registration-db:
+        condition: service_healthy
+      student-service:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./registration_service:/app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/v1/api/registration/\")' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # API Gateway (Nginx)
+  api-gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      - student-service
+      - registration-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api_gateway/ngnix.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  student_db_data:
+  registration_db_data:
