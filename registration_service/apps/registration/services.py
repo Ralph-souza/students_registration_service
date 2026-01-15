@@ -31,13 +31,19 @@ def validate_student_exists(student_id):
         elif response.status_code == 404:
             return False
         else:
-            # Se o serviço retornar erro (500, 503, etc), podemos tratar de diferentes formas
-            # Por enquanto, vamos considerar como erro de comunicação
+            # Log do erro para debug
+            error_detail = ""
+            try:
+                error_detail = response.json()
+            except:
+                error_detail = response.text[:200]
+            
             raise ValidationError(
-                f"Erro ao validar estudante no student_service: Status {response.status_code}"
+                f"Erro ao validar estudante no student_service: Status {response.status_code}. "
+                f"Detalhes: {error_detail}. URL: {url}"
             )
     except requests.exceptions.RequestException as e:
         # Erro de conexão, timeout, etc
         raise ValidationError(
-            f"Erro ao comunicar com student_service: {str(e)}"
+            f"Erro ao comunicar com student_service: {str(e)}. URL: {url}"
         )

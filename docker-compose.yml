@@ -10,9 +10,9 @@ services:
     volumes:
       - student_db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5434:5432"  # Porta alterada para evitar conflito
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${STUDENT_DB_USER:-student_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${STUDENT_DB_USER:-student_user} -d ${STUDENT_DB_NAME:-student_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,9 +28,9 @@ services:
     volumes:
       - registration_db_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "5435:5432"  # Porta alterada para evitar conflito
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${REGISTRATION_DB_USER:-registration_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${REGISTRATION_DB_USER:-registration_user} -d ${REGISTRATION_DB_NAME:-registration_db}"]
       interval: 10s
       timeout: 5s
       retries: 5

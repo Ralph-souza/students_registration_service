@@ -30,7 +30,15 @@ SECRET_KEY = 'django-insecure-4a#4qj+-*lpo+v_s^-(si71!q^-g2y-@&i%rx4ff*h913fd624
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", ".pythonanywhere.com"]
+ALLOWED_HOSTS = [
+    ".localhost", 
+    "127.0.0.1", 
+    "[::1]", 
+    ".pythonanywhere.com",
+    "student-service",  # Nome do container Docker
+    "localhost",
+    "*"  # Permite todos os hosts (apenas para desenvolvimento)
+]
 
 
 # Application definition
