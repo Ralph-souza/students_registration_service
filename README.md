@@ -114,6 +114,20 @@ make pre-commit-run
 
 Ver `make help` para lista completa de comandos.
 
+## Testando a API
+
+### Postman
+
+1. Importe a collection `POSTMAN_COLLECTION.json` no Postman
+2. Configure a variável `base_url` para `http://localhost:8000` (API Gateway)
+3. Siga o guia em [POSTMAN_GUIDE.md](POSTMAN_GUIDE.md) para testar todos os endpoints
+
+### Swagger/OpenAPI
+
+- Registration Service: `http://localhost:8002/v1/docs/` (quando rodando diretamente)
+- Ou via API Gateway: `http://localhost:8000/v1/api/registration/` (se configurado)
+
 ## Documentação
 
 - [DOCKER.md](DOCKER.md) - Guia de uso do Docker
+- [POSTMAN_GUIDE.md](POSTMAN_GUIDE.md) - Guia completo de testes com Postman

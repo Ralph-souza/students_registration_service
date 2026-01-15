@@ -42,16 +42,16 @@ clean-test:
 
 test:
 	@echo "Executando testes de todos os serviços..."
-	@cd student_service && DJANGO_SETTINGS_MODULE=student_service.settings python -m pytest tests/ -x -v
-	@cd registration_service && DJANGO_SETTINGS_MODULE=registration_service.settings python -m pytest tests/ -x -v
+	@cd student_service && export PYTHONPATH=.:$$PYTHONPATH && python -m pytest tests/ -v
+	@cd registration_service && export PYTHONPATH=.:$$PYTHONPATH && python -m pytest tests/ -v
 
 test-student:
 	@echo "Executando testes do student_service..."
-	@cd student_service && DJANGO_SETTINGS_MODULE=student_service.settings python -m pytest tests/ -x -v
+	@cd student_service && export PYTHONPATH=.:$$PYTHONPATH && python -m pytest tests/ -v
 
 test-registration:
 	@echo "Executando testes do registration_service..."
-	@cd registration_service && DJANGO_SETTINGS_MODULE=registration_service.settings python -m pytest tests/ -x -v
+	@cd registration_service && export PYTHONPATH=.:$$PYTHONPATH && python -m pytest tests/ -v
 
 lint: pre-commit-install pre-commit-run
 
